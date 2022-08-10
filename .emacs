@@ -28,8 +28,13 @@
 (straight-use-package 'markdown-mode)
 (straight-use-package 'cider)
 (straight-use-package 'intero) ;; Haskell
-(straight-use-package 'treemacs)
 
+(straight-use-package 'treemacs) ;; like speedbar, but inside the frame by default
+
+(use-package copilot :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))  :ensure t)
+(add-hook 'prog-mode-hook 'copilot-mode)
+(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
 
 (load (expand-file-name "~/quicklisp/slime-helper.el"))
 (add-to-list 'auto-mode-alist '("\\.org" . poly-markdown-mode))
@@ -67,3 +72,11 @@
 
 (setq inhibit-splash-screen t)
 (setq inhibit-startup-message t)
+(custom-set-variables
+ '(safe-local-variable-values
+   '((encoding . utf-8)
+     (syntax . Common-Lisp)
+     (toc-org-max-depth . 3)
+     (org-link-file-path-type . relative))))
+(custom-set-faces
+ )
