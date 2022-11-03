@@ -28,6 +28,7 @@
 (straight-use-package 'markdown-mode)
 (straight-use-package 'cider)
 (straight-use-package 'intero) ;; Haskell
+(straight-use-package 'hy-mode) ;; hy mode
 
 (straight-use-package 'treemacs) ;; like speedbar, but inside the frame by default
 
@@ -40,14 +41,15 @@
 (add-to-list 'auto-mode-alist '("\\.org" . poly-markdown-mode))
 
 ;;(setq inferior-lisp-program "/usr/local/bin/ccl64")
-(setq inferior-lisp-program "/Users/markw_1/bin/lw")
-;;(setq inferior-lisp-program "/Users/markw_1/bin/sbcl/bin/sbcl")
+;;(setq inferior-lisp-program "/Users/markw/bin/lw-console")
+(setq inferior-lisp-program "/Users/markw/bin/lw")
+;;(setq inferior-lisp-program "/Users/markw/bin/sbcl/bin/sbcl")
 
 ;; Disable the tool bar
 (tool-bar-mode -1)
 
 ;; Disable the scroll bars
-(scroll-bar-mode -1)
+;;(scroll-bar-mode -1)
 
 ;; Enable LSP support by default in programming buffers
 (vertico-mode t)
@@ -80,3 +82,8 @@
      (org-link-file-path-type . relative))))
 (custom-set-faces
  )
+
+(put 'upcase-region 'disabled nil)
+
+(add-hook 'text-mode-hook 'visual-line-mode) ;; word wrap on whole word boundaries
+
