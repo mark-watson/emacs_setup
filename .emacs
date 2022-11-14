@@ -29,7 +29,8 @@
 (straight-use-package 'cider)
 (straight-use-package 'intero) ;; Haskell
 (straight-use-package 'hy-mode) ;; hy mode
-
+(straight-use-package 'racket-mode)
+(straight-use-package 'magit)
 (straight-use-package 'treemacs) ;; like speedbar, but inside the frame by default
 
 (use-package copilot :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))  :ensure t)
@@ -87,3 +88,12 @@
 
 (add-hook 'text-mode-hook 'visual-line-mode) ;; word wrap on whole word boundaries
 
+(straight-use-package
+ '(el-patch :type git :host github :repo "flexibeast/plisp-mode"))
+					; https://github.com/flexibeast/plisp-mode.git
+(add-to-list 'auto-mode-alist '("\\.pil\\'" . plisp-mode))
+(add-to-list 'auto-mode-alist '("\\.l\\'"   . plisp-mode))
+
+;; PicoLisp editing with plisp-mode goes crazy if PicoLisp documentation is not available, so just turn off elcdoc:
+(global-eldoc-mode -1)
+(setq plisp-documentation-unavailable t)
