@@ -15,23 +15,40 @@
 
   (setq straight-use-package-by-default t)
 
+(tool-bar-mode -1) ;; hide menubar
+(setq inhibit-splash-screen t)
+
 ;; install packages (local git repos cloned):
 
 (straight-use-package 'use-package)
-(straight-use-package 'poly-markdown)
+;;(straight-use-package 'poly-markdown)
 (straight-use-package 'vertico)
 (straight-use-package 'eglot)
 (straight-use-package 'company)
 (straight-use-package 'clojure-mode)
 (straight-use-package 'haskell-mode)
+(straight-use-package 'swift-mode)
 (straight-use-package 'json-mode)
+(straight-use-package 'racket-mode)
 (straight-use-package 'markdown-mode)
 (straight-use-package 'cider)
 (straight-use-package 'intero) ;; Haskell
+;;(straight-use-package 'dap-python) ;; Python debugging
 (straight-use-package 'hy-mode) ;; hy mode
-(straight-use-package 'racket-mode)
-(straight-use-package 'magit)
+;;(straight-use-package 'ielm)
+;;(straight-use-package 'julia-mode)
+;;(straight-use-package 'julia-repl)
+
+
+(use-package chatgpt-shell :straight (:host github :repo "xenodium/chatgpt-shell" :files ("" "*.el"))  :ensure t)
+(setq chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
+
 (straight-use-package 'treemacs) ;; like speedbar, but inside the frame by default
+(require 'treemacs-project-follow-mode)
+(treemacs-project-follow-mode t)
+
+;; this just spawns a web browser:
+;;(use-package duckduckgo :straight (:host github :repo "akirak/duckduckgo.el" :files ("" "*.el"))  :ensure t)
 
 (use-package copilot :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))  :ensure t)
 (add-hook 'prog-mode-hook 'copilot-mode)
@@ -39,18 +56,27 @@
 (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
 
 (load (expand-file-name "~/quicklisp/slime-helper.el"))
-(add-to-list 'auto-mode-alist '("\\.org" . poly-markdown-mode))
+;;(add-to-list 'auto-mode-alist '("\\.org" . poly-markdown-mode))
 
 ;;(setq inferior-lisp-program "/usr/local/bin/ccl64")
 ;;(setq inferior-lisp-program "/Users/markw/bin/lw-console")
-(setq inferior-lisp-program "/Users/markw/bin/lw")
-;;(setq inferior-lisp-program "/Users/markw/bin/sbcl/bin/sbcl")
+(setq inferior-lisp-program "/Users/markwatson/bin/lw")
+;;(setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
 
 ;; Disable the tool bar
 (tool-bar-mode -1)
 
 ;; Disable the scroll bars
 ;;(scroll-bar-mode -1)
+
+;;(straight-use-package 'gerbil-mode)
+;;(straight-use-package 'gambit)
+;;(autoload 'gerbil-mode "gerbil-mode" "Gerbil editing mode." t)
+;;(require 'gambit)
+;;(add-hook 'inferior-scheme-mode-hook 'gambit-inferior-mode)
+(setq scheme-program-name "/opt/homebrew/bin/gxi")
+
+
 
 ;; Enable LSP support by default in programming buffers
 (vertico-mode t)
@@ -59,7 +85,7 @@
       completion-ignore-case t)
 
 ;; Enable LSP support by default in programming buffers
-(add-hook 'prog-mode-hook #'flymake-mode)
+;;(add-hook 'prog-mode-hook #'flymake-mode)
 
 ;; Pop-up auto-completion
 ;; Enable Company by default in programming buffers
@@ -84,16 +110,15 @@
 (custom-set-faces
  )
 
-(put 'upcase-region 'disabled nil)
 
-(add-hook 'text-mode-hook 'visual-line-mode) ;; word wrap on whole word boundaries
+(add-to-list 'auto-mode-alist '("\\.pl\\'" . prolog-mode))
+(add-to-list 'auto-mode-alist '("\\.s\\'" . scheme-mode))
 
-(straight-use-package
- '(el-patch :type git :host github :repo "flexibeast/plisp-mode"))
-					; https://github.com/flexibeast/plisp-mode.git
-(add-to-list 'auto-mode-alist '("\\.pil\\'" . plisp-mode))
-(add-to-list 'auto-mode-alist '("\\.l\\'"   . plisp-mode))
+(add-hook 'python-mode-hook '(lambda () 
+			       (setq python-indent 2
+				     python-guess-indent nil)))
 
-;; PicoLisp editing with plisp-mode goes crazy if PicoLisp documentation is not available, so just turn off elcdoc:
-(global-eldoc-mode -1)
-(setq plisp-documentation-unavailable t)
+;;(setq dap-python-debugger 'debugpy)
+;;;; Enabling only some features
+;;(setq dap-auto-configure-features '(sessions locals controls tooltip))
+
