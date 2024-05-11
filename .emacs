@@ -30,7 +30,6 @@
 (straight-use-package 'swift-mode)
 (straight-use-package 'json-mode)
 (straight-use-package 'racket-mode)
-(straight-use-package 'markdown-mode)
 (straight-use-package 'cider)
 (straight-use-package 'intero) ;; Haskell
 ;;(straight-use-package 'dap-python) ;; Python debugging
@@ -39,21 +38,45 @@
 ;;(straight-use-package 'julia-mode)
 ;;(straight-use-package 'julia-repl)
 
+(use-package ellama
+    :ensure t
+    :init
+    ;; setup key bindings
+    ;;;;(setopt ellama-keymap-prefix "C-c e")
+    )
 
 (use-package chatgpt-shell :straight (:host github :repo "xenodium/chatgpt-shell" :files ("" "*.el"))  :ensure t)
 (setq chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
+
+;;      window management:
+
+;; Install ace-window
+(straight-use-package 'ace-window)
+;; Configure ace-window
+(global-set-key (kbd "M-o") 'ace-window)  ; Bind ace-window to M-o
+;; Optionally enable ace-window-display-mode
+(ace-window-display-mode 1)
+
+(straight-use-package 'markdown-mode)
+(autoload 'markdown-mode "markdown-mode"
+   "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+(add-hook 'markdown-mode-hook 'flyspell-mode) ; brew install aspell  and:
+(setq ispell-program-name "aspell")
+(add-hook 'markdown-mode-hook 'visual-line-mode)
 
 (straight-use-package 'treemacs) ;; like speedbar, but inside the frame by default
 (require 'treemacs-project-follow-mode)
 (treemacs-project-follow-mode t)
 
+
 ;; this just spawns a web browser:
 ;;(use-package duckduckgo :straight (:host github :repo "akirak/duckduckgo.el" :files ("" "*.el"))  :ensure t)
 
-(use-package copilot :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))  :ensure t)
-(add-hook 'prog-mode-hook 'copilot-mode)
-(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+;;(use-package copilot :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))  :ensure t)
+;;(add-hook 'prog-mode-hook 'copilot-mode)
+;;(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+;;(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
 
 (load (expand-file-name "~/quicklisp/slime-helper.el"))
 ;;(add-to-list 'auto-mode-alist '("\\.org" . poly-markdown-mode))
