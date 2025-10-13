@@ -13,139 +13,138 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-  (setq straight-use-package-by-default t)
-
-(tool-bar-mode -1) ;; hide menubar
-(setq inhibit-splash-screen t)
-
-;; install packages (local git repos cloned):
-
+(setq straight-use-package-by-default t)
 (straight-use-package 'use-package)
-;;(straight-use-package 'poly-markdown)
 
+;;; Basic UI Configuration
+(tool-bar-mode -1) ;; hide toolbar
+(setq inhibit-splash-screen t)
+(setq inhibit-startup-message t)
+(when (display-graphic-p)
+  ;; Set initial frame size
+  (add-to-list 'initial-frame-alist '(width . 130))
+  (add-to-list 'initial-frame-alist '(height . 50))
 
-(straight-use-package 'treemacs) ;; like speedbar, but inside the frame by default
-(require 'treemacs-project-follow-mode)
-(treemacs-project-follow-mode t)
+  ;; Increase default font size by 30%
+  (let* ((current-height (face-attribute 'default :height))
+         (new-height (truncate (* current-height 1.3))))
+    (set-face-attribute 'default nil :height new-height))
 
-(straight-use-package 'vertico)
-(straight-use-package 'eglot)
-(straight-use-package 'company)
-(straight-use-package 'clojure-mode)
-(straight-use-package 'haskell-mode)
-(straight-use-package 'swift-mode)
-(straight-use-package 'json-mode)
-(straight-use-package 'racket-mode)
-(straight-use-package 'cider)
-(straight-use-package 'intero) ;; Haskell
-;;(straight-use-package 'dap-python) ;; Python debugging
-(straight-use-package 'hy-mode) ;; hy mode
-;;(use-package hy-mode :straight (:host github :repo "hylang/hy-mode" :files ("" "*.el"))  :ensure t)
-;;(straight-use-package 'ielm)
-;;(straight-use-package 'julia-mode)
-;;(straight-use-package 'julia-repl)
+  (setq initial-buffer-choice nil)
+  (setq initial-scratch-message nil))
 
-(straight-use-package 'ellama)
+;; configure terminal for mouse clicks
+(when (not (display-graphic-p)) (xterm-mouse-mode 1))
 
-(use-package ellama
-    :ensure t
-    :config
-    ;;(setq ellama-provider 'ollama)
-    (setq ellama-ollama-model "qwen2.5-coder:32b") ;; "mistral-nemo") ;;  ;;  ;; 12B ;; yi-coder:latest") ; Assuming you're using the 9B version
-
-    ;; setup key bindings
-    ;;;;(setopt ellama-keymap-prefix "C-c e")
-    )
-
-(global-set-key (kbd "C-c y") 'ellama-code-complete) ; For code completion with Yi-Coder
-
-(use-package chatgpt-shell :straight (:host github :repo "xenodium/chatgpt-shell" :files ("" "*.el"))  :ensure t)
-(setq chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
-
-;; Racket:
-(straight-use-package 'exec-path-from-shell)
-(exec-path-from-shell-initialize)
-
-(setq racket-program "/Applications/Racket/bin/racket")
-;;(setq racket-logger-config '((racket-mode . debug)))
-
-;;      window management:
-
-;; Install ace-window
+;;; Installed Packages
 (straight-use-package 'ace-window)
-;; Configure ace-window
-(global-set-key (kbd "M-o") 'ace-window)  ; Bind ace-window to M-o
-;; Optionally enable ace-window-display-mode
-(ace-window-display-mode 1)
-
+(straight-use-package 'cider)
+(straight-use-package 'clojure-mode)
+(straight-use-package 'eglot)
+(straight-use-package 'ellama)
+(straight-use-package 'exec-path-from-shell)
+(straight-use-package 'haskell-mode)
+(straight-use-package 'hy-mode)
+(straight-use-package 'intero) ;; Haskell
+(straight-use-package 'json-mode)
 (straight-use-package 'markdown-mode)
-(autoload 'markdown-mode "markdown-mode"
-   "Major mode for editing Markdown files" t)
-(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
-(add-hook 'markdown-mode-hook 'flyspell-mode) ; brew install aspell  and:
-(setq ispell-program-name "aspell")
-(add-hook 'markdown-mode-hook 'visual-line-mode)
+(straight-use-package 'pyvenv)
+(straight-use-package 'swift-mode)
+(straight-use-package 'treemacs)
+(straight-use-package 'vertico)
 
 
-;; this just spawns a web browser:
-;;(use-package duckduckgo :straight (:host github :repo "akirak/duckduckgo.el" :files ("" "*.el"))  :ensure t)
 
-;;(use-package copilot :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))  :ensure t)
-;;(add-hook 'prog-mode-hook 'copilot-mode)
-;;(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-;;(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+;;; Package Configurations
 
-;;(load (expand-file-name "~/quicklisp/slime-helper.el"))
-(load (expand-file-name "~/.roswell/lisp/quicklisp/slime-helper.el"))
+;; ace-window
+(global-set-key (kbd "M-o") 'ace-window)
 
-;; when using roswell:
-(load (expand-file-name "~/.roswell/helper.el"))
-(setq inferior-lisp-program "ros -Q run --load ~/.sbclrc")
-
-;;(Add-To-list 'auto-mode-alist '("\\.org" . poly-markdown-mode))
-
-;;(setq inferior-lisp-program "/usr/local/bin/ccl64")
-;;(setq inferior-lisp-program "/Users/markw/bin/lw-console")
-;;(setq inferior-lisp-program "/Users/markwatson/bin/lw")
-(setq inferior-lisp-program "ros -Q run --load ~/.sbclrc")
-;;(setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
-
-;; Disable the tool bar
-(tool-bar-mode -1)
-
-;; Disable the scroll bars
-;;(scroll-bar-mode -1)
-
-;;(straight-use-package 'gerbil-mode)
-;;(straight-use-package 'gambit)
-;;(autoload 'gerbil-mode "gerbil-mode" "Gerbil editing mode." t)
-;;(require 'gambit)
-;;(add-hook 'inferior-scheme-mode-hook 'gambit-inferior-mode)
-(setq scheme-program-name "/opt/homebrew/bin/gxi")
-
-;; Enable LSP support by default in programming buffers
+;; vertico
 (vertico-mode t)
 (setq read-buffer-completion-ignore-case t
       read-file-name-completion-ignore-case t
       completion-ignore-case t)
 
-;; Enable LSP support by default in programming buffers
-;;(add-hook 'prog-mode-hook #'flymake-mode)
+;; markdown-mode
+(autoload 'markdown-mode "markdown-mode"
+   "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist '("\.md\'" . markdown-mode))
+(add-hook 'markdown-mode-hook 'flyspell-mode)
+(setq ispell-program-name "aspell") ; brew install aspell
+(add-hook 'markdown-mode-hook 'visual-line-mode)
 
-;; Pop-up auto-completion
-;; Enable Company by default in programming buffers
-(add-hook 'prog-mode-hook #'company-mode)
+;; python
+(add-hook 'pyvenv-post-activate-hooks
+          (lambda () 
+            (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python3"))))
+(add-hook 'pyvenv-post-deactivate-hooks
+          (lambda () 
+            (setq python-shell-interpreter "python3")))
+(add-hook 'python-mode-hook #'(lambda () 
+			       (setq python-indent 2
+				     python-guess-indent nil)))
+(setq python-shell-completion-native-enable nil)
 
-;; Miscellaneous options
-;(setq confirm-kill-emacs #'yes-or-no-p)
+;; common lisp (slime/roswell)
+(load (expand-file-name "~/.roswell/lisp/quicklisp/slime-helper.el"))
+(load (expand-file-name "~/.roswell/helper.el"))
+(setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
+
+;; exec-path-from-shell
+(exec-path-from-shell-initialize)
+
+;;; AI / LLM Tools
+
+;; agent-shell (for Gemini)
+(setq straight-vc-git-executable "/usr/bin/git"
+      vc-git-program "/usr/bin/git")
+(use-package shell-maker
+  :straight (shell-maker :type git :host github
+                         :repo "xenodium/shell-maker"
+                         :tag "v0.82.2"
+                         :files ("*.el")))
+(use-package acp
+  :straight (acp :type git :host github :repo "xenodium/acp.el" :files ("*.el")))
+(use-package agent-shell
+  :straight (agent-shell :type git :host github
+                         :repo "xenodium/agent-shell"
+                         :files ("*.el")))
+(setq agent-shell-google-authentication
+      (agent-shell-google-make-authentication
+       :api-key (lambda () (auth-source-pass-get "secret" (getenv "GOOGLE_API_KEY")))))
+
+;; ellama (for local models via ollama)
+(use-package ellama
+    :config
+    (setq ellama-ollama-model "qwen3-coder:latest"))
+(global-set-key (kbd "C-c y") 'ellama-code-complete)
+
+;; aidermacs
+(use-package aidermacs
+  :bind (("C-c a" . aidermacs-transient-menu))
+  :custom
+  (aidermacs-extra-args '("--edit-format" "diff"))
+  (aidermacs-default-chat-mode 'code)
+  (aidermacs-default-model "ollama_chat/gpt-oss:120b-cloud"))
+
+;;; Treemacs
+;; Notes on tremacs added projects:
+;; In Treemacs, once directories are added to a workspace, they persist until explicitly removed.
+;; To remove these directories:
+;;	1.	Open Treemacs: Activate Treemacs within Emacs.
+;;	2.	Select the Project: Navigate to the project directory you wish to remove.
+;;	3.	Remove the Project: Use the keybinding C-c C-p d to remove the selected project from the workspace.
+
+;;; Miscellaneous Settings
 (setq window-resize-pixelwise t)
 (setq frame-resize-pixelwise t)
 (save-place-mode t)
 (savehist-mode t)
 (recentf-mode t)
+(setq-default indent-tabs-mode nil)
+(put 'upcase-region 'disabled nil)
 
-(setq inhibit-splash-screen t)
-(setq inhibit-startup-message t)
 (custom-set-variables
  '(safe-local-variable-values
    '((encoding . utf-8)
@@ -155,31 +154,6 @@
 (custom-set-faces
  )
 
-
-(add-to-list 'auto-mode-alist '("\\.pl\\'" . prolog-mode))
-(add-to-list 'auto-mode-alist '("\\.s\\'" . scheme-mode))
-(add-to-list 'auto-mode-alist '("\\.hy\\'" . hy-mode))
-
-(add-hook 'python-mode-hook '(lambda () 
-			       (setq python-indent 2
-				     python-guess-indent nil)))
-
-(setq python-shell-interpreter "./venv/bin/python3")
-
-(put 'upcase-region 'disabled nil)
-
-(setq python-shell-completion-native-enable nil)
-
-(when (display-graphic-p)
-  ;; Set initial frame size
-  (add-to-list 'initial-frame-alist '(width . 160))  ; Default is 80
-  (add-to-list 'initial-frame-alist '(height . 60))  ; Default is 45
-
-  ;; Increase default font size by 30%
-  (let* ((current-height (face-attribute 'default :height))
-         (new-height (truncate (* current-height 1.3))))
-    (set-face-attribute 'default nil :height new-height))
-
-  (setq initial-buffer-choice nil)
-  (setq initial-scratch-message nil)
-  (treemacs))
+(add-to-list 'auto-mode-alist '("\.pl\'" . prolog-mode))
+(add-to-list 'auto-mode-alist '("\.s\'" . scheme-mode))
+(add-to-list 'auto-mode-alist '("\.hy\'" . hy-mode))
