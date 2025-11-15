@@ -1,159 +1,157 @@
-(setq package-enable-at-startup nil)
+;; Minimal init.el — styling, indenting, and markdown support only
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; --- package setup --------------------------------------------------------
+(require 'package)
+(setq package-archives
+      '(("gnu" . "https://elpa.gnu.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")))
+(package-initialize)
 
-(setq straight-use-package-by-default t)
-(straight-use-package 'use-package)
+;; ensure use-package is available
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package)
 
-;;; Basic UI Configuration
-(tool-bar-mode -1) ;; hide toolbar
-(setq inhibit-splash-screen t)
-(setq inhibit-startup-message t)
+;; --- UI / basic behavior --------------------------------------------------
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(setq inhibit-startup-screen t
+      inhibit-startup-message t)
+
+;; sensible defaults
+(setq-default indent-tabs-mode nil    ;; use spaces, not tabs
+              tab-width 4)
+(setq-default fill-column 80)
+
+(show-paren-mode 1)
+(electric-pair-mode 1)
+(global-auto-revert-mode 1)
+(save-place-mode 1)
+(recentf-mode 1)
+(savehist-mode 1)
+
+;; frame/font tweaks (only in GUI)
 (when (display-graphic-p)
-  ;; Set initial frame size
-  (add-to-list 'initial-frame-alist '(width . 130))
-  (add-to-list 'initial-frame-alist '(height . 50))
+  (add-to-list 'initial-frame-alist '(width . 120))
+  (add-to-list 'initial-frame-alist '(height . 48))
+  (when (facep 'default)
+    (let ((h (face-attribute 'default :height)))
+      (set-face-attribute 'default nil :height (truncate (* h 1.15))))))
 
-  ;; Increase default font size by 30%
-  (let* ((current-height (face-attribute 'default :height))
-         (new-height (truncate (* current-height 1.3))))
-    (set-face-attribute 'default nil :height new-height))
+;; --- Programming defaults -------------------------------------------------
+(defun my/prog-defaults ()
+  "Defaults for programming buffers."
+  (setq-local tab-width 4)
+  (setq-local indent-tabs-mode nil)
+  (setq-local truncate-lines nil)
+  (display-line-numbers-mode 1)
+  (hs-minor-mode 1)) ;; code folding
 
-  (setq initial-buffer-choice nil)
-  (setq initial-scratch-message nil))
+(add-hook 'prog-mode-hook #'my/prog-defaults)
 
-;; configure terminal for mouse clicks
-(when (not (display-graphic-p)) (xterm-mouse-mode 1))
+;; make sure text files wrap nicely
+(add-hook 'text-mode-hook 'visual-line-mode)
 
-;;; Installed Packages
-(straight-use-package 'ace-window)
-(straight-use-package 'cider)
-(straight-use-package 'clojure-mode)
-(straight-use-package 'eglot)
-(straight-use-package 'ellama)
-(straight-use-package 'exec-path-from-shell)
-(straight-use-package 'haskell-mode)
-(straight-use-package 'hy-mode)
-(straight-use-package 'intero) ;; Haskell
-(straight-use-package 'json-mode)
-(straight-use-package 'markdown-mode)
-(straight-use-package 'pyvenv)
-(straight-use-package 'swift-mode)
-(straight-use-package 'treemacs)
-(straight-use-package 'vertico)
+;; --- Markdown -------------------------------------------------------------
+(use-package markdown-mode
+  :ensure t
+  :mode ("\\.md\\'" "\\.markdown\\'")
+  :commands markdown-mode
+  :hook ((markdown-mode . flyspell-mode)
+         (markdown-mode . visual-line-mode))
+  :init
+  (setq markdown-command "pandoc")) ;; optional: use pandoc if installed
 
+;; ispell fallback
+(setq ispell-program-name (or (executable-find "aspell")
+                              (executable-find "hunspell")
+                              "ispell"))
 
+;; --- programming language support  ----------------------------------------
 
-;;; Package Configurations
+(use-package cider :ensure t)
+(use-package clojure-mode :ensure t)
+;; (use-package exec-path-from-shell :ensure t) ;; Moved to config section below
+;;(use-package haskell-mode :ensure t)
+(use-package hy-mode :ensure t)
+;;(use-package intero :ensure t) ;; Haskell
+(use-package json-mode :ensure t)
+(use-package markdown-mode :ensure t)
+(use-package swift-mode :ensure t)
+(use-package treemacs :ensure t)
+(use-package vertico :ensure t)
 
-;; ace-window
-(global-set-key (kbd "M-o") 'ace-window)
+;; --- Python / uv / .venv handling -----------------------------------------
 
-;; vertico
-(vertico-mode t)
-(setq read-buffer-completion-ignore-case t
-      read-file-name-completion-ignore-case t
-      completion-ignore-case t)
+(use-package pyvenv :ensure t)
 
-;; markdown-mode
-(autoload 'markdown-mode "markdown-mode"
-   "Major mode for editing Markdown files" t)
-(add-to-list 'auto-mode-alist '("\.md\'" . markdown-mode))
-(add-hook 'markdown-mode-hook 'flyspell-mode)
-(setq ispell-program-name "aspell") ; brew install aspell
-(add-hook 'markdown-mode-hook 'visual-line-mode)
+(defun my/find-venv-root ()
+  "Walk up the directory tree looking for a .venv directory."
+  (let ((root (locate-dominating-file default-directory ".venv")))
+    (when root
+      (expand-file-name ".venv" root))))
 
-;; python
-(add-hook 'pyvenv-post-activate-hooks
-          (lambda () 
-            (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python3"))))
-(add-hook 'pyvenv-post-deactivate-hooks
-          (lambda () 
-            (setq python-shell-interpreter "python3")))
-(add-hook 'python-mode-hook #'(lambda () 
-			       (setq python-indent 2
-				     python-guess-indent nil)))
-(setq python-shell-completion-native-enable nil)
+(defun my/pyvenv-auto-activate ()
+  "Activate .venv if found in the directory tree."
+  (interactive)
+  (let ((venv-path (my/find-venv-root)))
+    (if (and venv-path (file-directory-p venv-path))
+        (progn
+          ;; 1. Activate via pyvenv
+          (pyvenv-activate venv-path)
+          ;; 2. Explicitly set the interpreter for the python shell (C-c C-p)
+          (setq-local python-shell-interpreter 
+                      (expand-file-name "bin/python" venv-path))
+          (message "Activated venv: %s" venv-path))
+      
+      ;; Fallback if no venv found
+      (pyvenv-deactivate))))
 
-;; common lisp (slime/roswell)
+(add-hook 'python-mode-hook #'my/pyvenv-auto-activate)
+
+;; Python indentation preferences
+(setq python-indent-offset 2
+      python-guess-indent nil
+      python-shell-completion-native-enable nil)
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            (setq python-indent-offset 2
+                  tab-width 2)))
+
+;; --- Common Lisp (slime/roswell) ------------------------------------------
 (load (expand-file-name "~/.roswell/lisp/quicklisp/slime-helper.el"))
 (load (expand-file-name "~/.roswell/helper.el"))
 (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
 
 ;; exec-path-from-shell
-(exec-path-from-shell-initialize)
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (exec-path-from-shell-initialize))
 
-;;; AI / LLM Tools
-
-;; agent-shell (for Gemini)
-(setq straight-vc-git-executable "/usr/bin/git"
-      vc-git-program "/usr/bin/git")
-(use-package shell-maker
-  :straight (shell-maker :type git :host github
-                         :repo "xenodium/shell-maker"
-                         :tag "v0.82.2"
-                         :files ("*.el")))
-(use-package acp
-  :straight (acp :type git :host github :repo "xenodium/acp.el" :files ("*.el")))
-(use-package agent-shell
-  :straight (agent-shell :type git :host github
-                         :repo "xenodium/agent-shell"
-                         :files ("*.el")))
-(setq agent-shell-google-authentication
-      (agent-shell-google-make-authentication
-       :api-key (lambda () (auth-source-pass-get "secret" (getenv "GOOGLE_API_KEY")))))
-
-;; ellama (for local models via ollama)
-(use-package ellama
-    :config
-    (setq ellama-ollama-model "qwen3-coder:latest"))
-(global-set-key (kbd "C-c y") 'ellama-code-complete)
-
-;; aidermacs
-(use-package aidermacs
-  :bind (("C-c a" . aidermacs-transient-menu))
-  :custom
-  (aidermacs-extra-args '("--edit-format" "diff"))
-  (aidermacs-default-chat-mode 'code)
-  (aidermacs-default-model "ollama_chat/gpt-oss:120b-cloud"))
-
-;;; Treemacs
-;; Notes on tremacs added projects:
-;; In Treemacs, once directories are added to a workspace, they persist until explicitly removed.
-;; To remove these directories:
-;;	1.	Open Treemacs: Activate Treemacs within Emacs.
-;;	2.	Select the Project: Navigate to the project directory you wish to remove.
-;;	3.	Remove the Project: Use the keybinding C-c C-p d to remove the selected project from the workspace.
-
-;;; Miscellaneous Settings
-(setq window-resize-pixelwise t)
-(setq frame-resize-pixelwise t)
-(save-place-mode t)
-(savehist-mode t)
-(recentf-mode t)
-(setq-default indent-tabs-mode nil)
+;; --- Small conveniences ---------------------------------------------------
+(global-set-key (kbd "M-o") #'other-window) ;; minimal window switch
+(setq-default sentence-end-double-space nil)
+(put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 
-(custom-set-variables
- '(safe-local-variable-values
-   '((encoding . utf-8)
-     (syntax . Common-Lisp)
-     (toc-org-max-depth . 3)
-     (org-link-file-path-type . relative))))
-(custom-set-faces
- )
+(provide 'init)
 
-(add-to-list 'auto-mode-alist '("\.pl\'" . prolog-mode))
-(add-to-list 'auto-mode-alist '("\.s\'" . scheme-mode))
-(add-to-list 'auto-mode-alist '("\.hy\'" . hy-mode))
+;; --- Custom Variables -----------------------------------------------------
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(cider exec-path-from-shell gptel hy-mode json-mode llm markdown-mode package-x
+           pyvenv pyvenv-auto swift-mode transient-cycles treemacs vertico)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
