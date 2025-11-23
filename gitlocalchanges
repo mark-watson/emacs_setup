@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+for d in */; do
+  [[ -d "$d" ]] || continue
+  name=${d%/}
+  lc=${(L)name}
+  [[ "$lc" == *copy* ]] && continue
+
+  if git -C "$d" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    changes=$(git -C "$d" status --porcelain)
+    [[ -n "$changes" ]] && printf '%s\n' "$name"
+  fi
+done
