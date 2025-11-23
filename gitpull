@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+for d in */; do
+  [[ -d "$d" ]] || continue
+  name=${d%/}
+  lc=${(L)name}
+  if [[ "$lc" == *copy* ]]; then
+    printf 'Skipping (contains "copy"): %s\n' "$name"
+    continue
+  fi
+
+  if git -C "$d" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    status123=$(git -C "$d" status --porcelain)
+    if [[ -n "$status123" ]]; then
+      printf 'Has local changes — skipping: %s\n' "$name"
+      continue
+    fi
+
+    printf 'Pulling: %s\n' "$name"
+    if ! git -C "$d" pull; then
+      printf 'git pull failed for: %s\n' "$name"
+    fi
+  else
+    printf 'Not a git repo: %s\n' "$name"
+  fi
+done
